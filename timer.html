@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval Timer</title>
+    <style>
+        :root { --work-color: #4CAF50; --rest-color: #FF9800; }
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
+        .timer-card { background: #1e1e1e; padding: 30px; border-radius: 20px; margin-top: 20px; }
+        #display { font-size: 6rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+        #status { font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
+        .controls { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
+        button { padding: 15px; font-size: 1.1rem; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-work { background: #333; color: white; border: 2px solid var(--work-color); }
+        .btn-start { background: var(--work-color); color: white; }
+        .btn-reset { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="timer-card">
+        <div id="status">READY</div>
+        <div id="display">00:30</div>
+    </div>
+
+    <div class="controls">
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn-work" onclick="setDuration(30)">30s Work</button>
+            <button class="btn-work" onclick="setDuration(60)">60s Work</button>
+        </div>
+        <button class="btn-start" id="startBtn" onclick="toggleTimer()">START</button>
+        <button class="btn-reset" onclick="resetTimer()">RESET</button>
+    </div>
+
+    <script>
+        let timeLeft = 30;
+        let workDuration = 30;
+        let isWorkPhase = true;
+        let timerId = null;
+        
+        // Using a high-pitched beep URL from Google's sound library
+        const chime = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const secs = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('display').innerText = `${mins}:${secs}`;
+        }
+
+        function setDuration(s) {
+            workDuration = s;
+            resetTimer();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startBtn');
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                btn.innerText = "RESUME";
+            } else {
+                btn.innerText = "PAUSE";
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft < 0) {
+                        chime.play();
+                        isWorkPhase = !isWorkPhase;
+                        timeLeft = isWorkPhase ? workDuration : 15;
+                        updateUI();
+                    }
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function updateUI() {
+            const status = document.getElementById('status');
+            status.innerText = isWorkPhase ? "WORK!" : "REST";
+            status.style.color = isWorkPhase ? "#4CAF50" : "#FF9800";
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            isWorkPhase = true;
+            timeLeft = workDuration;
+            document.getElementById('startBtn').innerText = "START";
+            document.getElementById('status').innerText = "READY";
+            document.getElementById('status').style.color = "white";
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
